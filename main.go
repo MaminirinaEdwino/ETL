@@ -1,14 +1,9 @@
 package main
 
 import (
-	"encoding/csv"
 	"encoding/json"
 	"fmt"
-	"io"
-	"log"
 	"os"
-	"strconv"
-	"strings"
 )
 
 
@@ -40,15 +35,7 @@ func loadToJSON(filename string, accidents <-chan RawAccident) error {
 	return nil
 }
 
-func shouldKeep(acc RawAccident, cfg FilterConfig) bool {
-	if acc.Vehicles < cfg.MinVehicles {
-		return false
-	}
-	if cfg.Severity != "" && acc.Severity != cfg.Severity {
-		return false
-	}
-	return true
-}
+
 
 func main() {
 	inputFile := "road_accident_data.csv"
