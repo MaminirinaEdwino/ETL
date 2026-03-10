@@ -29,7 +29,6 @@ func main() {
 			if err != nil {
 				continue 
 			}
-
 			myConfig := model.FilterConfig{
 				MinVehicles: 5,
 			}
