@@ -7,7 +7,7 @@ import (
 	"github.com/MaminirinaEdwino/etl/src/model"
 )
 
-func transformRow(row []string, e *model.Extractor) (model.RawAccident, error) {
+func TransformRow(row []string, e *model.Extractor) (model.RawAccident, error) {
 	latStr := e.GetValue(row, "Latitude")
 	lngStr := e.GetValue(row, "Longitude")
 	sevStr := e.GetValue(row, "Accident_severity")
