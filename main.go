@@ -30,7 +30,7 @@ func main() {
 				continue 
 			}
 			myConfig := model.FilterConfig{
-				MinVehicles: 5,
+				MinVehicles: 12,
 			}
 			if cmd.ShouldKeep(acc, myConfig) {
 				transformedData <- acc

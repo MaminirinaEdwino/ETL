@@ -18,7 +18,22 @@ func LoadToJSON(filename string, accidents <-chan model.RawAccident) error {
 	encoder := json.NewEncoder(file)
 	count := 0
 	for acc := range accidents {
-		err := encoder.Encode(acc)
+		finalAcc := make(map[string]any)
+
+		if acc.Index != "" {
+			finalAcc["Index"] = acc.Index
+		}
+		if acc.Date != "" {
+			finalAcc["Date"] = acc.Date
+		}
+		if acc.DayOfWeek != "" {
+			finalAcc["Day"] = acc.DayOfWeek
+		}
+		if acc.Severity != "" {
+			finalAcc["Severity"] = acc.Severity
+		}
+		err := encoder.Encode(finalAcc)
+
 		if err != nil {
 			fmt.Printf("Erreur encodage accident %s: %v\n", acc.Index, err)
 			continue

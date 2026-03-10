@@ -2,8 +2,10 @@ package cmd
 
 import (
 	"encoding/csv"
+	"fmt"
 	"os"
 	"strings"
+
 	"github.com/MaminirinaEdwino/etl/src/model"
 )
 
@@ -24,6 +26,7 @@ func NewExtractor(path string) (*model.Extractor, error) {
 
 	m := make(map[string]int)
 	for i, name := range header {
+		fmt.Println(name)
 		cleanName := strings.ToLower(strings.TrimSpace(name))
 		m[cleanName] = i
 	}

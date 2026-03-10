@@ -11,7 +11,7 @@ func TransformRow(row []string, e *model.Extractor) (model.RawAccident, error) {
 	latStr := e.GetValue(row, "Latitude")
 	lngStr := e.GetValue(row, "Longitude")
 	sevStr := e.GetValue(row, "Accident_severity")
-	dateStr := e.GetValue(row, "Accident date")
+	dateStr := e.GetValue(row, "Accident Date")
 	timeStr := e.GetValue(row, "Time")
 	vTypeStr := e.GetValue(row, "vehicle_type")
 	speedStr := e.GetValue(row, "speed_limit")
