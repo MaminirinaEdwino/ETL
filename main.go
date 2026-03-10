@@ -17,7 +17,6 @@ type FilterConfig struct {
 	Severity    string
 }
 
-// Extractor gère la lecture et le mapping dynamique du CSV
 type Extractor struct {
 	FilePath string
 	Mapping  map[string]int
@@ -118,7 +117,6 @@ func (e *Extractor) Run(outChan chan<- []string) {
 }
 
 func transformRow(row []string, e *Extractor) (RawAccident, error) {
-	// 1. Récupération des données brutes par nom de colonne
 	latStr := e.GetValue(row, "Latitude")
 	lngStr := e.GetValue(row, "Longitude")
 	sevStr := e.GetValue(row, "Accident_severity")
@@ -129,15 +127,12 @@ func transformRow(row []string, e *Extractor) (RawAccident, error) {
 	casualStr := e.GetValue(row, "Number_of_casualities")
 	day_of_week := e.GetValue(row, "Day_of_Week")
 	nbr_vehicle := e.GetValue(row, "Number_of_Vehicles")
-
-	// 2. Conversions de types avec gestion d'erreurs simple
+	//conversion
 	lat, _ := strconv.ParseFloat(latStr, 64)
 	lng, _ := strconv.ParseFloat(lngStr, 64)
 	speed, _ := strconv.Atoi(speedStr)
 	casual, _ := strconv.Atoi(casualStr)
 	vehicle, _ := strconv.Atoi(nbr_vehicle)
-	// 3. Nettoyage de données (Data Cleaning)
-	// Exemple : mettre la sévérité en majuscule pour l'uniformité
 	severity := strings.ToUpper(strings.TrimSpace(sevStr))
 
 	// 4. Retourner l'objet structuré
@@ -158,19 +153,15 @@ func transformRow(row []string, e *Extractor) (RawAccident, error) {
 }
 
 func loadToJSON(filename string, accidents <-chan RawAccident) error {
-	// 1. Créer ou écraser le fichier de destination
 	file, err := os.Create(filename)
 	if err != nil {
 		return fmt.Errorf("erreur création fichier: %v", err)
 	}
 	defer file.Close()
 
-	// 2. Utiliser un encodeur JSON pour écrire directement dans le fichier
 	encoder := json.NewEncoder(file)
-
 	count := 0
 	for acc := range accidents {
-		// On écrit l'objet structuré en une ligne JSON
 		err := encoder.Encode(acc)
 		if err != nil {
 			fmt.Printf("Erreur encodage accident %s: %v\n", acc.Index, err)
@@ -198,35 +189,27 @@ func shouldKeep(acc RawAccident, cfg FilterConfig) bool {
 }
 
 func main() {
-	// --- CONFIGURATION ---
 	inputFile := "road_accident_data.csv"
 	outputFile := "accidents_clean.json"
 
-	// 1. INITIALISATION
 	extractor, err := NewExtractor(inputFile)
 	if err != nil {
 		fmt.Printf("Erreur setup: %v\n", err)
 		return
 	}
 
-	// Canaux de communication
 	rawRows := make(chan []string, 100)
 	transformedData := make(chan RawAccident, 100)
 
-	// --- EXÉCUTION DU PIPELINE ---
-
-	// A. Lancer l'EXTRACT (Lecture CSV)
 	go extractor.Run(rawRows)
 
-	// B. Lancer le TRANSFORM (Nettoyage)
 	go func() {
 		for row := range rawRows {
 			acc, err := transformRow(row, extractor)
 			if err != nil {
-				continue // Ignorer les erreurs de parsing
+				continue 
 			}
 
-			// 3. On ne garde que la météo "Raining"
 			myConfig := FilterConfig{
 				MinVehicles: 5,
 			}
@@ -234,11 +217,8 @@ func main() {
 				transformedData <- acc
 			}
 		}
-		close(transformedData) // Très important pour arrêter le Load ensuite
+		close(transformedData) 
 	}()
-
-	// C. Lancer le LOAD (Écriture JSON)
-	// On le lance de manière synchrone (sans 'go') pour attendre la fin du programme
 	err = loadToJSON(outputFile, transformedData)
 	if err != nil {
 		fmt.Printf("Erreur lors du chargement: %v\n", err)
