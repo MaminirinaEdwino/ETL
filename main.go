@@ -12,7 +12,7 @@ import (
 )
 
 var (
-	fieldType = []string{"int", "float", "string"}
+	fieldType = []string{"int", "float", "string", "date"}
 	fieldOperation = []string{"equal", "less than", "higher than", "different"}
 )
 
@@ -199,14 +199,21 @@ func (m FilterModel) View() string {
 			if m.TypeCursor == i {
 				cursor = ">"
 			}
-			fmt.Fprintf(&s, "%s %s", cursor, element)
+			fmt.Fprintf(&s, "%s %s\n", cursor, element)
 		}
+		fmt.Fprintln(&s)
+		fmt.Fprintln(&s, "Filter Operation")
 		for i, element := range fieldOperation {
 			cursor := " "
 			if m.OperationCursor == i {
 				cursor = ">"
 			}
-			fmt.Fprintf(&s, "%s %s", cursor, element)
+			fmt.Fprintf(&s, "%s %s\n", cursor, element)
+		}
+		fmt.Fprintln(&s)
+		fmt.Fprintln(&s, "Actual Filter ")
+		for i, value := range m.Filter{
+			fmt.Fprintf(&s, "%s %s %s %s", i, value.Value, value.Type, value.Operation)
 		}
 	case "extract":
 		fmt.Fprint(&s, "Extract\n")
