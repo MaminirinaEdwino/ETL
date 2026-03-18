@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/MaminirinaEdwino/etl/src/model"
+	// "github.com/MaminirinaEdwino/etl/src/model"
 )
 
-func LoadToJSON(filename string, accidents <-chan model.RawAccident) error {
+func LoadToJSON(filename string, accidents <-chan map[string]string) error {
 	file, err := os.Create(filename)
 	if err != nil {
 		return fmt.Errorf("erreur création fichier: %v", err)
@@ -17,28 +17,13 @@ func LoadToJSON(filename string, accidents <-chan model.RawAccident) error {
 
 	encoder := json.NewEncoder(file)
 	count := 0
-	for acc := range accidents {
-		finalAcc := make(map[string]any)
-
-		if acc.Index != "" {
-			finalAcc["Index"] = acc.Index
-		}
-		if acc.Date != "" {
-			finalAcc["Date"] = acc.Date
-		}
-		if acc.DayOfWeek != "" {
-			finalAcc["Day"] = acc.DayOfWeek
-		}
-		if acc.Severity != "" {
-			finalAcc["Severity"] = acc.Severity
-		}
-		err := encoder.Encode(finalAcc)
+	for acc := range accidents {		
+		err := encoder.Encode(acc)
 
 		if err != nil {
-			fmt.Printf("Erreur encodage accident %s: %v\n", acc.Index, err)
+			// fmt.Printf("Erreur encodage accident %s: %v\n", acc[""], err)
 			continue
 		}
-
 		count++
 		if count%1000 == 0 {
 			fmt.Printf("Chargement : %d accidents sauvegardés...\n", count)
