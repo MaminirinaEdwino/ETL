@@ -16,7 +16,7 @@ func LoadToJSON(filename string, accidents <-chan map[string]string) error {
 	defer file.Close()
 
 	encoder := json.NewEncoder(file)
-	count := 0
+	// count := 0
 	for acc := range accidents {		
 		err := encoder.Encode(acc)
 
@@ -24,12 +24,12 @@ func LoadToJSON(filename string, accidents <-chan map[string]string) error {
 			// fmt.Printf("Erreur encodage accident %s: %v\n", acc[""], err)
 			continue
 		}
-		count++
-		if count%1000 == 0 {
-			fmt.Printf("Chargement : %d accidents sauvegardés...\n", count)
-		}
+		// count++
+		// if count%1000 == 0 {
+		// 	fmt.Printf("Chargement : %d accidents sauvegardés...\n", count)
+		// }
 	}
 
-	fmt.Printf("Chargement terminé : %d accidents écrits dans %s\n", count, filename)
+	// fmt.Printf("Chargement terminé : %d accidents écrits dans %s\n", count, filename)
 	return nil
 }

@@ -38,6 +38,7 @@ type FilterModel struct {
 	TypeCursor        int
 	OperationCursor   int
 	cursorType        string
+	Message           string
 }
 
 func InitialModel(Choices []string, outputFile string, extractor model.Extractor) FilterModel {
@@ -141,6 +142,7 @@ func (m FilterModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 		case "ctrl+e":
 			ExtractData(&m.Extractor, m.OutputFile, m)
+			m.Message = "Extraction complete . . ."
 		case "ctrl+left":
 			if m.Tab > 0 {
 				m.Tab--
@@ -214,7 +216,7 @@ func (m FilterModel) View() string {
 		}
 	case "extract":
 		fmt.Fprint(&s, "Extract\n")
-
+		fmt.Fprintln(&s, m.Message)
 	}
 
 	s.WriteString("\nPress \nq to quit.\ne to see extract tab\nc to switch to choice tab\n")
