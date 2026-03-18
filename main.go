@@ -12,7 +12,7 @@ import (
 )
 
 var (
-	fieldType = []string{"int", "float", "string", "date"}
+	fieldType      = []string{"int", "float", "string", "date"}
 	fieldOperation = []string{"equal", "less than", "higher than", "different"}
 )
 
@@ -78,10 +78,10 @@ func (m FilterModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				}
 			}
 			if m.TabList[m.Tab] == "filter" {
-				if m.cursorType == "type"{
+				if m.cursorType == "type" {
 					m.TypeCursor--
 				}
-				if m.cursorType == "operation"{
+				if m.cursorType == "operation" {
 					m.OperationCursor--
 				}
 			}
@@ -100,10 +100,10 @@ func (m FilterModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				}
 			}
 			if m.TabList[m.Tab] == "filter" {
-				if m.cursorType == "type"{
+				if m.cursorType == "type" {
 					m.TypeCursor++
 				}
-				if m.cursorType == "operation"{
+				if m.cursorType == "operation" {
 					m.OperationCursor++
 				}
 			}
@@ -133,11 +133,11 @@ func (m FilterModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					}
 				}
 			}
-			if  m.TabList[m.Tab] == "filter"  {
+			if m.TabList[m.Tab] == "filter" {
 				if m.SelectedForFilter != "" {
 					m.Filter[m.SelectedForFilter] = Filter{
-						Value: m.ValueInput.Value(),
-						Type: fieldType[m.TypeCursor],
+						Value:     m.ValueInput.Value(),
+						Type:      fieldType[m.TypeCursor],
 						Operation: fieldOperation[m.OperationCursor],
 					}
 				}
@@ -212,7 +212,7 @@ func (m FilterModel) View() string {
 		}
 		fmt.Fprintln(&s)
 		fmt.Fprintln(&s, "Actual Filter ")
-		for i, value := range m.Filter{
+		for i, value := range m.Filter {
 			fmt.Fprintf(&s, "%s %s %s %s", i, value.Value, value.Type, value.Operation)
 		}
 	case "extract":
@@ -224,7 +224,26 @@ func (m FilterModel) View() string {
 
 	return s.String()
 }
+func ShouldKeep(acc map[string]string, filter map[string]Filter) bool {
+	for i, value := range acc {
+		if _, ok := filter[i]; ok {
+			switch filter[i].Type {
+			case "string":
+				switch filter[i].Operation {
+				case "equal":
+					if value == filter[i].Value {
+						return true
+					}
+				}
+			case "int":
+			case "float":
+			case "date":
 
+			}
+		}
+	}
+	return false
+}
 func ExtractData(extractor *model.Extractor, outputFile string, m FilterModel) {
 	rawRows := make(chan []string, 100)
 	transformedData := make(chan map[string]string, 100)
@@ -237,7 +256,9 @@ func ExtractData(extractor *model.Extractor, outputFile string, m FilterModel) {
 				continue
 			}
 
-			transformedData <- acc
+			if ShouldKeep(acc, m.Filter) {
+				transformedData <- acc
+			}
 		}
 		close(transformedData)
 	}()
