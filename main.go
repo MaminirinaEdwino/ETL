@@ -210,7 +210,7 @@ func (m FilterModel) View() string {
 		fmt.Fprintln(&s)
 		fmt.Fprintln(&s, "Actual Filter ")
 		for i, value := range m.Filter {
-			fmt.Fprintf(&s, "%s %s %s %s", i, value.Value, value.Type, value.Operation)
+			fmt.Fprintf(&s, "%s %s %s %s\n", i, value.Value, value.Type, value.Operation)
 		}
 	case "extract":
 		fmt.Fprint(&s, "Extract\n")
