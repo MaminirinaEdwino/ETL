@@ -3,7 +3,9 @@ package main
 import (
 	"fmt"
 	"os"
+	"strconv"
 	"strings"
+	"time"
 
 	"github.com/MaminirinaEdwino/etl/src/cmd"
 	"github.com/MaminirinaEdwino/etl/src/model"
@@ -13,7 +15,7 @@ import (
 
 var (
 	fieldType      = []string{"int", "float", "string", "date"}
-	fieldOperation = []string{"equal", "less than", "higher than", "different"}
+	fieldOperation = []string{"equal", "less than", "bigger than", "different"}
 )
 
 type Filter struct {
@@ -119,14 +121,9 @@ func (m FilterModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case "f":
 			if m.TabList[m.Tab] == "choices" {
 				if value, ok := m.SelectedMap[m.cursor]; ok {
-					if m.SelectedForFilter != "" {
-						if _, ok = m.Filter[m.SelectedForFilter]; ok {
-							delete(m.Filter, m.SelectedForFilter)
-							m.SelectedForFilter = ""
-						} else {
-							m.Filter[value] = Filter{}
-							m.SelectedForFilter = value
-						}
+					if _, ok = m.Filter[m.SelectedForFilter]; ok {
+						delete(m.Filter, value)
+						m.SelectedForFilter = ""
 					} else {
 						m.Filter[value] = Filter{}
 						m.SelectedForFilter = value
@@ -236,8 +233,48 @@ func ShouldKeep(acc map[string]string, filter map[string]Filter) bool {
 					}
 				}
 			case "int":
+				filterValue, _ := strconv.Atoi(filter[i].Value)
+				realValue, _ := strconv.Atoi(value)
+				switch filter[i].Operation {
+				case "equal":
+					if filterValue == realValue {
+						return true
+					}
+				case "less than":
+					if filterValue < realValue {
+						return true
+					}
+				case "bigger than":
+					if filterValue > realValue {
+						return true
+					}
+				case "different":
+					if filterValue != realValue {
+						return true
+					}
+				}
 			case "float":
 			case "date":
+				filterValue, _ := time.Parse("01/02/2006", filter[i].Value)
+				realValue, _ := time.Parse("01/02/2006", value)
+				switch filter[i].Operation {
+				case "equal":
+					if filterValue.Equal(realValue) {
+						return true
+					}
+				case "less than":
+					if filterValue.Before(realValue) {
+						return true
+					}
+				case "bigger than":
+					if filterValue.After(realValue) {
+						return true
+					}
+				case "different":
+					if filterValue != realValue {
+						return true
+					}
+				}
 
 			}
 		}

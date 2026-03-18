@@ -1,4 +1,4 @@
 package cmd
 
-import "github.com/MaminirinaEdwino/etl/src/model"
+// import "github.com/MaminirinaEdwino/etl/src/model"
 
