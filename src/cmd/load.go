@@ -24,12 +24,7 @@ func LoadToJSON(filename string, accidents <-chan map[string]string) error {
 			// fmt.Printf("Erreur encodage accident %s: %v\n", acc[""], err)
 			continue
 		}
-		// count++
-		// if count%1000 == 0 {
-		// 	fmt.Printf("Chargement : %d accidents sauvegardés...\n", count)
-		// }
+		
 	}
-
-	// fmt.Printf("Chargement terminé : %d accidents écrits dans %s\n", count, filename)
 	return nil
 }

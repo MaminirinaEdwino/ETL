@@ -1,8 +1,10 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"os"
+	"slices"
 	"strconv"
 	"strings"
 	"time"
@@ -12,6 +14,7 @@ import (
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
+	"github.com/charmbracelet/lipgloss/table"
 )
 
 var (
@@ -19,7 +22,7 @@ var (
 	fieldOperation = []string{"equal", "less than", "bigger than", "different"}
 )
 var (
-	titleStyle = lipgloss.NewStyle().
+	titleStyle      = lipgloss.NewStyle().
 			Bold(true).
 			Foreground(lipgloss.Color("#01F70D")).
 			Border(lipgloss.RoundedBorder())
@@ -118,7 +121,7 @@ func (m FilterModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				}
 			}
 			if m.TabList[m.Tab] == "filter" {
-				if m.cursorType == "type" && m.TypeCursor >0 {
+				if m.cursorType == "type" && m.TypeCursor > 0 {
 					m.TypeCursor--
 				}
 				if m.cursorType == "operation" && m.OperationCursor > 0 {
@@ -144,10 +147,10 @@ func (m FilterModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				}
 			}
 			if m.TabList[m.Tab] == "filter" {
-				if m.cursorType == "type" && m.TypeCursor < len(fieldType) - 1{
+				if m.cursorType == "type" && m.TypeCursor < len(fieldType)-1 {
 					m.TypeCursor++
 				}
-				if m.cursorType == "operation" && m.OperationCursor < len(fieldOperation) - 1 {
+				if m.cursorType == "operation" && m.OperationCursor < len(fieldOperation)-1 {
 					m.OperationCursor++
 				}
 			}
@@ -264,8 +267,8 @@ func (m FilterModel) View() string {
 			fmt.Fprintf(&o, "%s %s\n", cursor, content)
 		}
 		// fmt.Fprintln(&s, boxStyle.Render(o.String()))
-		row := lipgloss.JoinHorizontal(lipgloss.Top, boxStyle.Render(t.String()), boxStyle.Render(o.String()) )
-		fmt.Fprintln(&s,row )
+		row := lipgloss.JoinHorizontal(lipgloss.Top, boxStyle.Render(t.String()), boxStyle.Render(o.String()))
+		fmt.Fprintln(&s, row)
 		fmt.Fprintln(&s, "Actual Filter ")
 		for i, value := range m.Filter {
 			fmt.Fprintf(&s, "%s %s %s %s\n", i, value.Value, value.Type, value.Operation)
@@ -273,6 +276,43 @@ func (m FilterModel) View() string {
 	case "extract":
 		fmt.Fprint(&s, "Extract\n")
 		fmt.Fprintln(&s, m.Message)
+		var header []string
+		var rows [][]string
+		count := 0
+		outFile,_ := os.Open(m.OutputFile)
+		
+		defer outFile.Close()
+		// scanner := bufio.NewScanner(outFile)
+		decoder := json.NewDecoder(outFile)
+		tmp := make(map[string]string)
+		for _, value := range m.SelectedMap {
+			header = append(header, value)
+		}
+		for count < 10 {
+			decoder.Decode(&tmp)
+			var tmpTab []string
+			found := false
+			for _, el := range header {
+				tmpTab = append(tmpTab, tmp[el])
+			}
+			for _, row := range rows {
+				if slices.Equal(row, tmpTab) {
+					found = true
+					break
+				}
+			}
+			if !found {
+				rows = append(rows, tmpTab)
+			}
+			count++
+		}
+
+		t := table.New().
+			Border(lipgloss.NormalBorder()).
+			BorderStyle(lipgloss.NewStyle().Foreground(lipgloss.Color("99"))).
+			Headers(header...).
+			Rows(rows...)
+		fmt.Fprintln(&s, t.Render())
 	}
 
 	//s.WriteString("\nPress \nq to quit.\ne to see extract tab\nc to switch to choice tab\n")
@@ -280,6 +320,7 @@ func (m FilterModel) View() string {
 	return s.String()
 }
 func ShouldKeep(acc map[string]string, filter map[string]Filter) bool {
+	okMap := make(map[string]bool)
 	for i, value := range acc {
 		if _, ok := filter[i]; ok {
 			switch filter[i].Type {
@@ -287,7 +328,7 @@ func ShouldKeep(acc map[string]string, filter map[string]Filter) bool {
 				switch filter[i].Operation {
 				case "equal":
 					if value == filter[i].Value {
-						return true
+						okMap[i] = true
 					}
 				}
 			case "int":
@@ -296,19 +337,19 @@ func ShouldKeep(acc map[string]string, filter map[string]Filter) bool {
 				switch filter[i].Operation {
 				case "equal":
 					if filterValue == realValue {
-						return true
+						okMap[i] = true
 					}
 				case "less than":
 					if filterValue < realValue {
-						return true
+						okMap[i] = true
 					}
 				case "bigger than":
 					if filterValue > realValue {
-						return true
+						okMap[i] = true
 					}
 				case "different":
 					if filterValue != realValue {
-						return true
+						okMap[i] = true
 					}
 				}
 			case "float":
@@ -318,26 +359,31 @@ func ShouldKeep(acc map[string]string, filter map[string]Filter) bool {
 				switch filter[i].Operation {
 				case "equal":
 					if filterValue.Equal(realValue) {
-						return true
+						okMap[i] = true
 					}
 				case "less than":
 					if filterValue.Before(realValue) {
-						return true
+						okMap[i] = true
 					}
 				case "bigger than":
 					if filterValue.After(realValue) {
-						return true
+						okMap[i] = true
 					}
 				case "different":
 					if filterValue != realValue {
-						return true
+						okMap[i] = true
 					}
 				}
 
 			}
 		}
 	}
-	return false
+	for i, _ := range filter {
+		if _,ok := okMap[i]; !ok{
+			return false
+		}
+	}
+	return true
 }
 func ExtractData(extractor *model.Extractor, outputFile string, m FilterModel) {
 	rawRows := make(chan []string, 100)
