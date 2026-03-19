@@ -2,7 +2,6 @@ package model
 
 import (
 	"encoding/csv"
-	"fmt"
 	"io"
 	"log"
 	"os"
@@ -53,5 +52,4 @@ func (e *Extractor) Run(outChan chan<- []string) {
 	}
 
 	close(outChan)
-	fmt.Println("Extraction terminée.")
 }

@@ -20,10 +20,11 @@ var (
 )
 var (
 	titleStyle = lipgloss.NewStyle().
-	Bold(true).
-	Foreground(lipgloss.Color("#01F70D")).
-	Border(lipgloss.RoundedBorder())
+		Bold(true).
+		Foreground(lipgloss.Color("#01F70D")).
+		Border(lipgloss.RoundedBorder())
 )
+
 type Filter struct {
 	Type      string
 	Value     string
@@ -31,20 +32,25 @@ type Filter struct {
 }
 
 type FilterModel struct {
-	Choices           []string
-	cursor            int
-	SelectedMap       map[int]string
-	SelectedForFilter string
-	OutputFile        string
-	Extractor         model.Extractor
-	Tab               int
-	TabList           []string
-	Filter            map[string]Filter
-	ValueInput        textinput.Model
-	TypeCursor        int
-	OperationCursor   int
-	cursorType        string
-	Message           string
+	Choices               []string
+	cursor                int
+	SelectedMap           map[int]string
+	SelectedForFilter     string
+	OutputFile            string
+	Extractor             model.Extractor
+	Tab                   int
+	TabList               []string
+	Filter                map[string]Filter
+	ValueInput            textinput.Model
+	TypeCursor            int
+	OperationCursor       int
+	cursorType            string
+	Message               string
+	ChoicePagination      int
+	ChoicePaginationEnd   int
+	ChoicePaginationStart int
+	ChoiceLimit           int
+	TotalPage             int
 }
 
 func InitialModel(Choices []string, outputFile string, extractor model.Extractor) FilterModel {
@@ -53,17 +59,23 @@ func InitialModel(Choices []string, outputFile string, extractor model.Extractor
 	ti.Placeholder = "Enter value here ..."
 	ti.CharLimit = 256
 	ti.Width = 20
-
+	choiceLimit := 10
+	TotalPage := len(Choices) / choiceLimit
 	return FilterModel{
-		Choices:           Choices,
-		SelectedMap:       make(map[int]string),
-		OutputFile:        outputFile,
-		Extractor:         extractor,
-		Tab:               0,
-		Filter:            make(map[string]Filter),
-		TabList:           []string{"choices", "filter", "extract"},
-		SelectedForFilter: "",
-		ValueInput:        ti,
+		Choices:               Choices,
+		SelectedMap:           make(map[int]string),
+		OutputFile:            outputFile,
+		Extractor:             extractor,
+		Tab:                   0,
+		Filter:                make(map[string]Filter),
+		TabList:               []string{"choices", "filter", "extract"},
+		SelectedForFilter:     "",
+		ValueInput:            ti,
+		ChoiceLimit:           choiceLimit,
+		ChoicePagination:      1,
+		TotalPage:             TotalPage,
+		ChoicePaginationStart: 0,
+		ChoicePaginationEnd:   choiceLimit - 1,
 	}
 }
 
@@ -84,6 +96,10 @@ func (m FilterModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			if m.TabList[m.Tab] == "choices" {
 				if m.cursor > 0 {
 					m.cursor--
+					if m.ChoicePaginationStart > 0 {
+						m.ChoicePaginationEnd--
+						m.ChoicePaginationStart--
+					}
 				}
 			}
 			if m.TabList[m.Tab] == "filter" {
@@ -106,6 +122,10 @@ func (m FilterModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			if m.TabList[m.Tab] == "choices" {
 				if m.cursor < len(m.Choices)-1 {
 					m.cursor++
+					if m.ChoicePaginationEnd < len(m.Choices) {
+						m.ChoicePaginationEnd++
+						m.ChoicePaginationStart++
+					}
 				}
 			}
 			if m.TabList[m.Tab] == "filter" {
@@ -147,6 +167,7 @@ func (m FilterModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				}
 			}
 		case "ctrl+e":
+			m.Message = ""
 			ExtractData(&m.Extractor, m.OutputFile, m)
 			m.Message = "Extraction complete . . ."
 		case "ctrl+left":
@@ -182,19 +203,21 @@ func (m FilterModel) View() string {
 	case "choices":
 		s.WriteString("What do you want to extract ? \n\n")
 		for i, choice := range m.Choices {
-			cursor := " "
-			if m.cursor == i {
-				cursor = ">"
+			if i >= m.ChoicePaginationStart && i <= m.ChoicePaginationEnd {
+				cursor := " "
+				if m.cursor == i {
+					cursor = ">"
+				}
+				checked := " "
+				if _, ok := m.SelectedMap[i]; ok {
+					checked = "x"
+				}
+				filtered := " "
+				if _, ok := m.Filter[choice]; ok {
+					filtered = "F"
+				}
+				fmt.Fprintf(&s, "%s [%s] [%s] %s\n", cursor, checked, filtered, choice)
 			}
-			checked := " "
-			if _, ok := m.SelectedMap[i]; ok {
-				checked = "x"
-			}
-			filtered := " "
-			if _, ok := m.Filter[choice]; ok {
-				filtered = "F"
-			}
-			fmt.Fprintf(&s, "%s [%s] [%s] %s\n", cursor, checked, filtered, choice)
 		}
 	case "filter":
 		fmt.Fprintf(&s, "Filter %s \n\n", m.SelectedForFilter)
@@ -303,7 +326,11 @@ func ExtractData(extractor *model.Extractor, outputFile string, m FilterModel) {
 				continue
 			}
 
-			if ShouldKeep(acc, m.Filter) {
+			if len(m.Filter) > 0 {
+				if ShouldKeep(acc, m.Filter) {
+					transformedData <- acc
+				}
+			} else {
 				transformedData <- acc
 			}
 		}
