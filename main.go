@@ -288,7 +288,7 @@ func (m FilterModel) View() string {
 		for _, value := range m.SelectedMap {
 			header = append(header, value)
 		}
-		for count < 10 {
+		for count < 15 {
 			decoder.Decode(&tmp)
 			var tmpTab []string
 			found := false
