@@ -20,9 +20,24 @@ var (
 )
 var (
 	titleStyle = lipgloss.NewStyle().
-		Bold(true).
-		Foreground(lipgloss.Color("#01F70D")).
-		Border(lipgloss.RoundedBorder())
+			Bold(true).
+			Foreground(lipgloss.Color("#01F70D")).
+			Border(lipgloss.RoundedBorder())
+	inputStyle = lipgloss.NewStyle().
+			Border(lipgloss.RoundedBorder()).
+			Width(25)
+	headingStyle = lipgloss.NewStyle().
+			Foreground(lipgloss.Color("#01F70D")).
+			Bold(true)
+	boxStyle = lipgloss.NewStyle().
+			Border(lipgloss.RoundedBorder()).
+			Width(30).
+			PaddingLeft(1)
+	checkedStyle = lipgloss.NewStyle().
+			Foreground(lipgloss.Color("#01F70D")).
+			Background(lipgloss.Color("#01F70D"))
+	selectedStyle = lipgloss.NewStyle().
+			Foreground(lipgloss.Color("#01F70D"))
 )
 
 type Filter struct {
@@ -205,42 +220,50 @@ func (m FilterModel) View() string {
 		for i, choice := range m.Choices {
 			if i >= m.ChoicePaginationStart && i <= m.ChoicePaginationEnd {
 				cursor := " "
+				content := choice
 				if m.cursor == i {
 					cursor = ">"
+					content = selectedStyle.Render(content)
 				}
 				checked := " "
 				if _, ok := m.SelectedMap[i]; ok {
-					checked = "x"
+					checked = checkedStyle.Render(" ")
 				}
 				filtered := " "
 				if _, ok := m.Filter[choice]; ok {
 					filtered = "F"
 				}
-				fmt.Fprintf(&s, "%s [%s] [%s] %s\n", cursor, checked, filtered, choice)
+				fmt.Fprintf(&s, "%s [%s] [%s] %s\n", cursor, checked, filtered, content)
 			}
 		}
 	case "filter":
-		fmt.Fprintf(&s, "Filter %s \n\n", m.SelectedForFilter)
-		fmt.Fprintf(&s, "%s", m.ValueInput.View())
+		var t, o strings.Builder
+		fmt.Fprintf(&s, "Filter %s \n", headingStyle.Render(m.SelectedForFilter))
+		fmt.Fprintf(&s, "%s", inputStyle.Render(m.ValueInput.View()))
 		fmt.Fprintln(&s, "")
-		fmt.Fprint(&s, "Field Type\n")
+
+		fmt.Fprint(&t, "Field Type\n")
 		for i, element := range fieldType {
 			cursor := " "
+			content := element
 			if m.TypeCursor == i {
 				cursor = ">"
+				content = selectedStyle.Render(content)
 			}
-			fmt.Fprintf(&s, "%s %s\n", cursor, element)
+			fmt.Fprintf(&t, "%s %s\n", cursor, content)
 		}
-		fmt.Fprintln(&s)
-		fmt.Fprintln(&s, "Filter Operation")
+		fmt.Fprintln(&s, boxStyle.Render(t.String()))
+		fmt.Fprintln(&o, "Filter Operation")
 		for i, element := range fieldOperation {
 			cursor := " "
+			content := element
 			if m.OperationCursor == i {
 				cursor = ">"
+				content = selectedStyle.Render(content)
 			}
-			fmt.Fprintf(&s, "%s %s\n", cursor, element)
+			fmt.Fprintf(&o, "%s %s\n", cursor, content)
 		}
-		fmt.Fprintln(&s)
+		fmt.Fprintln(&s, boxStyle.Render(o.String()))
 		fmt.Fprintln(&s, "Actual Filter ")
 		for i, value := range m.Filter {
 			fmt.Fprintf(&s, "%s %s %s %s\n", i, value.Value, value.Type, value.Operation)
