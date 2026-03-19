@@ -118,10 +118,10 @@ func (m FilterModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				}
 			}
 			if m.TabList[m.Tab] == "filter" {
-				if m.cursorType == "type" {
+				if m.cursorType == "type" && m.TypeCursor >0 {
 					m.TypeCursor--
 				}
-				if m.cursorType == "operation" {
+				if m.cursorType == "operation" && m.OperationCursor > 0 {
 					m.OperationCursor--
 				}
 			}
@@ -144,10 +144,10 @@ func (m FilterModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				}
 			}
 			if m.TabList[m.Tab] == "filter" {
-				if m.cursorType == "type" {
+				if m.cursorType == "type" && m.TypeCursor < len(fieldType) - 1{
 					m.TypeCursor++
 				}
-				if m.cursorType == "operation" {
+				if m.cursorType == "operation" && m.OperationCursor < len(fieldOperation) - 1 {
 					m.OperationCursor++
 				}
 			}
