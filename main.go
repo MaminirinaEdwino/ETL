@@ -11,13 +11,19 @@ import (
 	"github.com/MaminirinaEdwino/etl/src/model"
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/charmbracelet/lipgloss"
 )
 
 var (
 	fieldType      = []string{"int", "float", "string", "date"}
 	fieldOperation = []string{"equal", "less than", "bigger than", "different"}
 )
-
+var (
+	titleStyle = lipgloss.NewStyle().
+	Bold(true).
+	Foreground(lipgloss.Color("#01F70D")).
+	Border(lipgloss.RoundedBorder())
+)
 type Filter struct {
 	Type      string
 	Value     string
@@ -168,7 +174,9 @@ func (m FilterModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 func (m FilterModel) View() string {
 	var s strings.Builder
-	s.WriteString("Extract Transform Load\n\n")
+	s.WriteString("\n")
+	s.WriteString(titleStyle.Render("Extract Transform Load"))
+	s.WriteString("\n")
 
 	switch m.TabList[m.Tab] {
 	case "choices":
@@ -219,7 +227,7 @@ func (m FilterModel) View() string {
 		fmt.Fprintln(&s, m.Message)
 	}
 
-	s.WriteString("\nPress \nq to quit.\ne to see extract tab\nc to switch to choice tab\n")
+	//s.WriteString("\nPress \nq to quit.\ne to see extract tab\nc to switch to choice tab\n")
 
 	return s.String()
 }
