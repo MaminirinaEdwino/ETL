@@ -252,7 +252,7 @@ func (m FilterModel) View() string {
 			}
 			fmt.Fprintf(&t, "%s %s\n", cursor, content)
 		}
-		fmt.Fprintln(&s, boxStyle.Render(t.String()))
+		// fmt.Fprintln(&s, boxStyle.Render(t.String()))
 		fmt.Fprintln(&o, "Filter Operation")
 		for i, element := range fieldOperation {
 			cursor := " "
@@ -263,7 +263,9 @@ func (m FilterModel) View() string {
 			}
 			fmt.Fprintf(&o, "%s %s\n", cursor, content)
 		}
-		fmt.Fprintln(&s, boxStyle.Render(o.String()))
+		// fmt.Fprintln(&s, boxStyle.Render(o.String()))
+		row := lipgloss.JoinHorizontal(lipgloss.Top, boxStyle.Render(t.String()), boxStyle.Render(o.String()) )
+		fmt.Fprintln(&s,row )
 		fmt.Fprintln(&s, "Actual Filter ")
 		for i, value := range m.Filter {
 			fmt.Fprintf(&s, "%s %s %s %s\n", i, value.Value, value.Type, value.Operation)
