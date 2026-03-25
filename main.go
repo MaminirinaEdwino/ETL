@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"flag"
 	"fmt"
 	"os"
 	"slices"
@@ -22,7 +23,7 @@ var (
 	fieldOperation = []string{"equal", "less than", "bigger than", "different"}
 )
 var (
-	titleStyle      = lipgloss.NewStyle().
+	titleStyle = lipgloss.NewStyle().
 			Bold(true).
 			Foreground(lipgloss.Color("#01F70D")).
 			Border(lipgloss.RoundedBorder())
@@ -279,8 +280,8 @@ func (m FilterModel) View() string {
 		var header []string
 		var rows [][]string
 		count := 0
-		outFile,_ := os.Open(m.OutputFile)
-		
+		outFile, _ := os.Open(m.OutputFile)
+
 		defer outFile.Close()
 		// scanner := bufio.NewScanner(outFile)
 		decoder := json.NewDecoder(outFile)
@@ -378,8 +379,8 @@ func ShouldKeep(acc map[string]string, filter map[string]Filter) bool {
 			}
 		}
 	}
-	for i, _ := range filter {
-		if _,ok := okMap[i]; !ok{
+	for i := range filter {
+		if _, ok := okMap[i]; !ok {
 			return false
 		}
 	}
@@ -414,17 +415,24 @@ func ExtractData(extractor *model.Extractor, outputFile string, m FilterModel) {
 }
 
 func main() {
-	inputFile := "road_accident_data.csv"
-	outputFile := "accidents_clean.json"
-
-	extractor, rowList, err := cmd.NewExtractor(inputFile)
-	if err != nil {
-		fmt.Printf("Erreur setup: %v\n", err)
-		return
-	}
-	p := tea.NewProgram(InitialModel(rowList, outputFile, *extractor))
-	if _, err := p.Run(); err != nil {
-		fmt.Printf("Alas, there's been an error: %v", err)
-		os.Exit(1)
+	inputFile := flag.String("inputfile", "", "The source file")
+	outputFile := flag.String("outputfile", "", "The name of the file for the loaading the result")
+	// inputFile := "road_accident_data.csv"
+	// outputFile := "accidents_clean.json"
+	flag.Parse()
+	switch {
+	case *inputFile != "" && *outputFile != "":
+		extractor, rowList, err := cmd.NewExtractor(*inputFile)
+		if err != nil {
+			fmt.Printf("Erreur setup: %v\n", err)
+			return
+		}
+		p := tea.NewProgram(InitialModel(rowList, *outputFile, *extractor))
+		if _, err := p.Run(); err != nil {
+			fmt.Printf("Alas, there's been an error: %v", err)
+			os.Exit(1)
+		}
+	default: 
+		fmt.Printf("Use the following command:\netl --inputfile=\"yourfile.csv\" --outputfile=\"yourfile.json\"")
 	}
 }
