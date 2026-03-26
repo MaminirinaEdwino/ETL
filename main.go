@@ -240,7 +240,7 @@ func (m FilterModel) View() string {
 				fmt.Fprintf(&s, "%s [%s] [%s] %s\n", cursor, checked, filtered, content)
 			}
 		}
-		fmt.Fprintln(&s, "up/down : navigate inside the field lists\nenter: for selecting the field that you want to extract\nf: for adding a filter for the fields\nctrl+right: navigate to the filter section\nctrl+c/q : quit the program")
+		fmt.Fprintln(&s, "\nup/down : navigate inside the field lists\nenter: for selecting the field that you want to extract\nf: for adding a filter for the fields\nctrl+right: navigate to the filter section\nctrl+c/q : quit the program")
 	case "filter":
 		var t, o strings.Builder
 		fmt.Fprintf(&s, "Filter %s \n", headingStyle.Render(m.SelectedForFilter))
@@ -275,7 +275,7 @@ func (m FilterModel) View() string {
 		for i, value := range m.Filter {
 			fmt.Fprintf(&s, "%s %s %s %s\n", i, value.Value, value.Type, value.Operation)
 		}
-		fmt.Fprintln(&s, "up/down : choose the type and the operation for the filter(you don't need to check this time your choices this tilme, so just place the cursor near your choices)\ntab: focus and un-focus the input\nf: add the filter parameters to the filter list\nctrl+right: navitage to the extract section\n ctrl+left: go back to the filter section\n ctrl+c/q : quit the program")
+		fmt.Fprintln(&s, "\nup/down : choose the type and the operation for the filter(you don't need to check this time your choices this tilme, so just place the cursor near your choices)\ntab: focus and un-focus the input\nf: add the filter parameters to the filter list\nctrl+right: navitage to the extract section\n ctrl+left: go back to the filter section\n ctrl+c/q : quit the program")
 	case "extract":
 		fmt.Fprint(&s, "Extract\n")
 		fmt.Fprintln(&s, m.Message)
@@ -316,10 +316,11 @@ func (m FilterModel) View() string {
 			Headers(header...).
 			Rows(rows...)
 		fmt.Fprintln(&s, t.Render())
+		fmt.Fprintln(&s, "\nctrl+e: load the result into a json file\nctrl+e/q :quit the program")
 	}
 
 	//s.WriteString("\nPress \nq to quit.\ne to see extract tab\nc to switch to choice tab\n")
-	fmt.Fprintln(&s, "ctrl+e: load the result into a json file\nctrl+e/q :quit the program")
+
 	return s.String()
 }
 func ShouldKeep(acc map[string]string, filter map[string]Filter) bool {
